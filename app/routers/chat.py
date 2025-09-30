@@ -36,8 +36,7 @@ async def chat_response(
         logger.info(f"Processing chat request")
         graph = orchestrator.build_graph()
         output = await graph.ainvoke(
-            {"user_id": request.user_id, "message": request.message},
-            config={"recursion_limit": 10},
+            {"user_id": request.user_id, "message": request.message}
         )
 
         logger.info("Response generated successfully")

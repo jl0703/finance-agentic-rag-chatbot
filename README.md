@@ -31,7 +31,7 @@ Built with **FastAPI**, **LangChain**, and **LangGraph**, it leverages **OpenAI*
 
 | Node        | Description                                                                                                   |
 |-------------|--------------------------------------------------------------------------------------------------------------|
-| **planner**     | Analyzes the user's query and generates a step-by-step plan, determining required tools or retrieval actions. |
+| **planner**     | Analyzes the user's query and generates a step-by-step plan, determining required tools or retrieval actions. If a cached is hit in the semantic cache, the planner will directly terminate the workflow by returning the cached response. |
 | **supervisor**  | Dynamically routes the workflow by deciding the next node to execute based on the current state and plan.     |
 | **retrieval**   | Retrieves relevant documents from the vector store (**Qdrant**) as per the user's query or plan.              |
 | **generator**   | Produces the final response by combining LLM reasoning, tool outputs, and retrieved documents.                |

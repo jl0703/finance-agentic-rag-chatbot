@@ -21,3 +21,4 @@ class OverallState(InputState, OutputState):
     tools: Optional[str]
     retrieved_docs: Optional[str]
     tools_used: Optional[List[str]]
+    is_cached: bool = False

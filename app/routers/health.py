@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.chatbot.ingestion.services.vector_store import QdrantVectorStore
-from app.core.config_setup import REDIS_CACHE
+from app.core.config_setup import REDIS
 from app.chatbot.chat.services.openai_client import OpenAIClient
 
 logger = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ async def redis_health() -> dict[str, str]:
         HTTPException: 503 Service Unavailable if the database cannot be reached.
     """
     try:
-        cache = REDIS_CACHE
+        cache = REDIS
         await cache.ping()
 
         return {"status": "Healthy"}

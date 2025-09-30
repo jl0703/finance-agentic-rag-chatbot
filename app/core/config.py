@@ -22,6 +22,10 @@ class Settings(BaseSettings):
 
     # Cache
     REDIS_URL: str
+    VECTORIZER_DTYPE: str = "float32"
+    CACHE_NAME: str = "llm_cache"
+    CACHE_TTL: int = 300
+    CACHE_DISTANCE_THRESHOLD: float = 0.1
 
     # Vector Database
     QDRANT_URL: str

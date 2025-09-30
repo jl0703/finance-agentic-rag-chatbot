@@ -8,6 +8,7 @@ from app.chatbot.chat.schemas.model import Plan, Supervisor
 from app.chatbot.chat.schemas.state import InputState, OutputState, OverallState
 from app.chatbot.chat.services.mcp_client import MCPClient
 from app.chatbot.chat.services.openai_client import OpenAIClient
+from app.chatbot.chat.services.redis_cache import RedisCache
 from app.chatbot.chat.templates import (
     generate_factual_response,
     planning_prompt,
@@ -27,6 +28,7 @@ class ChatOrchestrator:
         self.openai_client = OpenAIClient()
         self.mcp_manager = MCPClient()
         self.vector_store = QdrantVectorStore()
+        self.cache = RedisCache()
 
     async def planner(self, state: InputState) -> OverallState:
         """
@@ -40,6 +42,17 @@ class ChatOrchestrator:
         """
         try:
             logger.info("[Planner] Planning next steps.")
+            
+            cached = self.cache.get_cached(state["message"])
+            
+            if cached:
+                logger.info("[Planner] Cache hit. Returning cached response.")
+                
+                return {
+                    "response": cached["response"],
+                    "tools_used": cached["metadata"].get("tools_called", []),
+                    "is_cached": True,
+                }
 
             tools_json = await self.mcp_manager.get_tools_json()
             chain = build_chain(planning_prompt(), Plan)
@@ -149,6 +162,8 @@ class ChatOrchestrator:
             )
 
             tool_names, final_output = extract_tool_calls(output["messages"])
+            
+            self.cache.store(state["message"], final_output, {"tools_called": tool_names})
 
             logger.info("[Generator] Response generated.")
 
@@ -165,6 +180,19 @@ class ChatOrchestrator:
                     "tools_used": [],
                 },
             )
+        
+    def planner_route(self, state: OverallState) -> Literal["supervisor", "__end__"]:
+        """
+        Determine the next step after planning.
+        
+        Returns:
+            Literal["supervisor", "__end__"]: The next step after planning.
+        """
+        if state.get("is_cached") == True:
+            return "__end__"
+
+        return "supervisor"
+        
 
     def build_graph(self) -> StateGraph:
         """
@@ -183,7 +211,7 @@ class ChatOrchestrator:
         graph.add_node("generator", self.generator)
 
         graph.add_edge(START, "planner")
-        graph.add_edge("planner", "supervisor")
+        graph.add_conditional_edges("planner", self.planner_route)
         graph.add_edge("supervisor", END)
 
         return graph.compile()

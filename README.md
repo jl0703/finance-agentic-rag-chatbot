@@ -126,16 +126,70 @@ QDRANT_API_KEY=
 
 ## Running Vector Store and Redis
 
-Start Qdrant and Redis instances as required (see `docker-compose.yml` or your preferred setup).
+You need two core services: a vector store (e.g., Qdrant) and Redis. Below are setup options for each.
+
+###  Redis
+
+#### **Option A: Run Redis with Docker**
+
+```bash
+docker run -d --name redis -p 6379:6379 redis:latest
+```
+- Pulls the latest Redis image (if not present).
+- Starts Redis in detached mode.
+- Maps container port `6379` to the host.
+
+#### **Option B: Install Redis on Linux (Debian/Ubuntu)**
+
+```bash
+sudo apt-get install lsb-release curl gpg
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+sudo apt-get update
+sudo apt-get install redis
+```
+
+Start and enable Redis:
+
+```bash
+sudo systemctl enable redis-server
+sudo systemctl start redis-server
+```
+
+Check if Redis is running:
+
+```bash
+redis-cli ping
+# Should return "PONG"
+```
+
+> For other distributions and detailed instructions, see the [official Redis installation docs](https://redis.io/docs/install/).
+
+---
+
+### Qdrant (Vector Store)
+
+You will need a Qdrant instance or cluster. There are two main options:
+
+#### **Option A: Qdrant Cloud**
+
+- Create a cluster via [Qdrant Cloud](https://cloud.qdrant.io/) (free tier and self-managed options available).
+
+#### **Option B: Self-Hosted Qdrant**
+
+- Follow the [Qdrant documentation](https://qdrant.tech/documentation/) for deployment, configuration, and scaling.
+- Qdrant supports sharding, replicas, and cluster rebalancing for distributed deployments.
+
+Once your Qdrant instance is running, configure your application to connect using the appropriate host, port, API key, and collection settings.
 
 ---
 
 ## MCP Servers (yfinance, Tavily Search)
 
-- **yfinance MCP**: Start your custom yfinance MCP server (see its repo or documentation for details).
-- **Tavily Search MCP**: Start the Tavily Search MCP server (see its repo or documentation for details).
+- **yfinance MCP**: https://github.com/jl0703/yfinance-mcp
+- **Tavily Search MCP**: https://github.com/tavily-ai/tavily-mcp
 
-Configure the endpoints for these MCP servers in your `.env` or config files so the chatbot can access them.
+Configure the endpoints for these MCP servers in config files so the chatbot can access them.
 
 ---
 
@@ -159,7 +213,7 @@ Configure the endpoints for these MCP servers in your `.env` or config files so 
 - **Chat endpoint**: `/chat/` (POST: `user_id`, `message`)
 - **Streaming chat**: `/chat/stream`
 - **Document ingestion**: `/ingestion/upload`
-- **Health checks**: `/health/openai`, `/health/redis`, `/health/qdrant`
+- **Health checks**: `/health/openai`, `/health/redis`, `/health/qdrant`, `/health/mcp`
 
 ---
 

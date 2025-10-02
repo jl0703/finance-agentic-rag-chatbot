@@ -61,13 +61,8 @@ SEMANTIC_CACHE = SemanticCache(
 # MCP Server Configurations
 MCP_SERVERS = {
     "yfinance_mcp": {
-        "command": "uv",
-        "args": [
-            "--directory",
-            "C:\\Users\\User\\Documents\\mcp\\yfinance",  # Adjust path based on your local setup
-            "run",
-            "server.py",
-        ],
+        "command": "docker",
+        "args": ["run", "-i", "--rm", "yfinance-mcp"],
         "transport": "stdio",
     },
     "tavily-remote": {
